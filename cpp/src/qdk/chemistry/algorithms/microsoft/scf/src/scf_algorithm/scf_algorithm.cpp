@@ -36,11 +36,11 @@ namespace {
 void validate_rohf_electron_counts(int nelec_alpha, int nelec_beta, int num_mos) {
   if (nelec_alpha > num_mos || nelec_beta > num_mos) {
     throw std::invalid_argument(
-        "ROHF: electron counts (alpha=" + std::to_string(nelec_alpha) +
+        "ROHF: electron counts exceed the number of molecular orbitals "
+        "(alpha=" + std::to_string(nelec_alpha) +
         ", beta=" + std::to_string(nelec_beta) +
-        ") exceed the number of molecular orbitals (" +
-        std::to_string(num_mos) +
-        ") remaining after linear-dependency removal.");
+        ", n_MO=" + std::to_string(num_mos) +
+        ") after linear-dependency removal.");
   }
 }
 }  // namespace
