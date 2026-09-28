@@ -31,6 +31,19 @@
 
 #ifdef ENABLE_NVTX3
 #include <nvtx3/nvtx3.hpp>
+
+namespace {
+void validate_rohf_electron_counts(int nelec_alpha, int nelec_beta, int num_mos) {
+  if (nelec_alpha > num_mos || nelec_beta > num_mos) {
+    throw std::invalid_argument(
+        "ROHF: electron counts (alpha=" + std::to_string(nelec_alpha) +
+        ", beta=" + std::to_string(nelec_beta) +
+        ") exceed the number of molecular orbitals (" +
+        std::to_string(num_mos) +
+        ") remaining after linear-dependency removal.");
+  }
+}
+}  // namespace
 #endif
 
 namespace qdk::chemistry::scf {
@@ -184,6 +197,9 @@ void SCFAlgorithm::update_density_matrix(RowMajorMatrix& P,
           "ROHF density matrix must contain alpha and beta AO blocks");
     }
 
+    validate_rohf_electron_counts(nelec_alpha, nelec_beta,
+                                  static_cast<int>(C.cols()));
+
     auto build_density_block = [&](auto&& target, int n_occ) {
       if (n_occ <= 0) {
         target.setZero();
@@ -263,12 +279,7 @@ void SCFAlgorithm::build_rohf_f_p_matrix(
         "ROHF build: overlap matrix S must be square with dimension equal "
         "to the number of atomic orbitals!");
   }
-  if (nelec_alpha > num_molecular_orbitals ||
-      nelec_beta > num_molecular_orbitals) {
-    throw std::invalid_argument(
-        "ROHF build: electron counts exceed the number of molecular "
-        "orbitals; nd/ns/nv block indices would be out of bounds!");
-  }
+  validate_rohf_electron_counts(nelec_alpha, nelec_beta, num_molecular_orbitals);
 
   total_density =
       P.block(0, 0, num_atomic_orbitals, num_atomic_orbitals) +

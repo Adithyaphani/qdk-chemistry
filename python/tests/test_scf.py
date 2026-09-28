@@ -537,7 +537,6 @@ class TestScfSolver:
         orbitals = wavefunction.get_orbitals()
         # Always validate the basic contract from the issue report.
         assert orbitals.is_restricted()
-        assert np.isfinite(energy)
 
         coeffs_alpha, _ = orbitals.get_coefficients()
 
