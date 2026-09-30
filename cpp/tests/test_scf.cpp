@@ -286,49 +286,31 @@ TEST_F(ScfTest, ROHF_RectangularBackTransform_ProjectionIdentity) {
 }
 
 TEST_F(ScfTest, ROHF_LinearlyDependentBasis_Issue543) {
-  auto structure = testing::create_obenzosemiquinone_structure();
+  // H5 chain / aug-cc-pVTZ: 115 AOs, fewer MOs after linear-dependency
+  // removal at the default threshold (1e-6). Small enough to run in seconds.
+  auto structure = testing::create_h5_chain_structure();
   auto scf_solver = ScfSolverFactory::create();
   scf_solver->settings().set("method", "hf");
   scf_solver->settings().set("scf_type", "restricted");
   scf_solver->settings().set("enable_gdm", false);
 
-  // On some platforms linear-dependency removal drops so many functions
-  // that nMO < nelec_alpha; the solver correctly throws in that case.
-  double energy = 0.0;
-  std::shared_ptr<Wavefunction> wfn;
-  try {
-    auto result = scf_solver->run(structure, 0, 2, "def2-tzvp");
-    energy = result.first;
-    wfn = result.second;
-  } catch (const std::invalid_argument& e) {
-    const std::string msg = e.what();
-    if (msg.find("electron counts exceed the number of molecular "
-                 "orbitals") != std::string::npos) {
-      GTEST_SKIP() << "Basis too linearly dependent for electron count on "
-                      "this platform: "
-                   << msg;
-    }
-    FAIL() << "Unexpected std::invalid_argument: " << msg;
-  }
+  auto result = scf_solver->run(structure, 0, 2, "aug-cc-pvtz");
+  const double energy = result.first;
+  auto wfn = result.second;
   ASSERT_NE(wfn, nullptr);
   const auto orbitals = wfn->get_orbitals();
   ASSERT_NE(orbitals, nullptr);
-
-  // Always validate the basic contract from the issue report.
   EXPECT_TRUE(orbitals->is_restricted());
-  EXPECT_TRUE(std::isfinite(energy));
 
-  // Use non-deprecated API: coefficients() returns SymmetryBlockedTensor.
-  // For restricted orbitals, the alpha/alpha block holds the shared AO-MO
-  // coefficients.
+  // Restricted orbitals: the alpha/alpha block holds the shared AO-MO
+  // coefficients; linear-dependency removal must leave nMO < nAO.
   const auto& coeff_alpha =
       orbitals->coefficients()->block({axes::alpha(), axes::alpha()});
-  if (coeff_alpha.rows() == coeff_alpha.cols()) {
-    GTEST_SKIP() << "Linear-dependency removal did not trigger; expected "
-                    "nMO < nAO";
-  }
   EXPECT_GT(coeff_alpha.rows(), coeff_alpha.cols());
-  // Reference energy intentionally omitted — needs confirmed converged value.
+
+  // Reference: converged ROHF energy (Hartree).
+  const double ref_energy = -2.4021840157;
+  EXPECT_NEAR(energy, ref_energy, 1e-6);
 }
 
 TEST_F(ScfTest, Oxygen_atom_gdm) {

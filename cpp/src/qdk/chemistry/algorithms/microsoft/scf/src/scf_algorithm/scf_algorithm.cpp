@@ -31,6 +31,7 @@
 
 #ifdef ENABLE_NVTX3
 #include <nvtx3/nvtx3.hpp>
+#endif
 
 namespace {
 void validate_rohf_electron_counts(int nelec_alpha, int nelec_beta, int num_mos) {
@@ -44,7 +45,6 @@ void validate_rohf_electron_counts(int nelec_alpha, int nelec_beta, int num_mos)
   }
 }
 }  // namespace
-#endif
 
 namespace qdk::chemistry::scf {
 
