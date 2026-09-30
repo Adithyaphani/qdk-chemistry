@@ -34,12 +34,13 @@
 #endif
 
 namespace {
-void validate_rohf_electron_counts(int nelec_alpha, int nelec_beta, int num_mos) {
+void validate_rohf_electron_counts(int nelec_alpha, int nelec_beta,
+                                   int num_mos) {
   if (nelec_alpha > num_mos || nelec_beta > num_mos) {
     throw std::invalid_argument(
         "ROHF: electron counts exceed the number of molecular orbitals "
-        "(alpha=" + std::to_string(nelec_alpha) +
-        ", beta=" + std::to_string(nelec_beta) +
+        "(alpha=" +
+        std::to_string(nelec_alpha) + ", beta=" + std::to_string(nelec_beta) +
         ", n_MO=" + std::to_string(num_mos) +
         ") after linear-dependency removal.");
   }
@@ -279,7 +280,8 @@ void SCFAlgorithm::build_rohf_f_p_matrix(
         "ROHF build: overlap matrix S must be square with dimension equal "
         "to the number of atomic orbitals!");
   }
-  validate_rohf_electron_counts(nelec_alpha, nelec_beta, num_molecular_orbitals);
+  validate_rohf_electron_counts(nelec_alpha, nelec_beta,
+                                num_molecular_orbitals);
 
   total_density =
       P.block(0, 0, num_atomic_orbitals, num_atomic_orbitals) +
