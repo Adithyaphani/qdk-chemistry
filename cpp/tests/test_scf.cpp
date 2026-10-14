@@ -312,6 +312,7 @@ TEST_F(ScfTest, ROHF_LinearlyDependentBasis_Issue543) {
   const auto orbitals = wfn->get_orbitals();
   ASSERT_NE(orbitals, nullptr);
   EXPECT_TRUE(orbitals->is_restricted());
+  EXPECT_TRUE(std::isfinite(energy));
 
   // Restricted orbitals: the alpha/alpha block holds the shared AO-MO
   // coefficients; linear-dependency removal must leave nMO < nAO.
